@@ -1,73 +1,148 @@
-# Welcome to your Lovable project
+# 📊 MEI Manager
 
-## Project info
+Sistema completo de gestão para Microempreendedores Individuais (MEI), com captura de notas fiscais por câmera, leitura por IA, controle financeiro e gestão de estoque.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+![React](https://img.shields.io/badge/React-18.3-61DAFB?logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript)
+![Vite](https://img.shields.io/badge/Vite-5.4-646CFF?logo=vite)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-06B6D4?logo=tailwindcss)
+![Supabase](https://img.shields.io/badge/Supabase-Backend-3FCF8E?logo=supabase)
 
-## How can I edit this code?
+## ✨ Funcionalidades
 
-There are several ways of editing your application.
+### 📄 Gestão de Notas Fiscais
+- Captura de notas fiscais via câmera do dispositivo
+- Leitura automática por IA (OCR + Processamento Inteligente)
+- Armazenamento seguro na nuvem
+- Histórico completo de notas
 
-**Use Lovable**
+### 📦 Controle de Estoque
+- Cadastro de produtos e categorias
+- Alertas de estoque baixo
+- Análise de movimentação com gráficos
+- **Agente de IA** para análise inteligente do inventário
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+### 💰 Controle Financeiro
+- Dashboard de receitas e despesas
+- Acompanhamento de faturamento mensal
+- Controle de limite MEI (R$ 81.000/ano)
+- Geração de boletos
 
-Changes made via Lovable will be committed automatically to this repo.
+### 📈 Relatórios
+- Relatórios financeiros completos
+- Exportação em PDF
+- Análise por período
+- **Agente de IA** para insights
 
-**Use your preferred IDE**
+### ⚙️ Configurações
+- Cadastro de dados da empresa
+- Logo e favicon personalizados
+- Tema claro/escuro
+- Integração com Supabase
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## 🚀 Começando
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Pré-requisitos
 
-Follow these steps:
+- Node.js 18+ 
+- npm ou bun
+- Conta no [Supabase](https://supabase.com)
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Instalação
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+```bash
+# Clone o repositório
+git clone https://github.com/bellaveritaoficial-del/mei-manager.git
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Entre no diretório
+cd mei-manager
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Instale as dependências
+npm install
+
+# Configure as variáveis de ambiente
+cp .env.example .env
+# Edite .env com suas credenciais do Supabase
+
+# Inicie o servidor de desenvolvimento
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+O app estará disponível em `http://localhost:3000`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Variáveis de Ambiente
 
-**Use GitHub Codespaces**
+Crie um arquivo `.env` na raiz do projeto:
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```env
+VITE_SUPABASE_URL=sua_url_do_supabase
+VITE_SUPABASE_ANON_KEY=sua_chave_anonima
+```
 
-## What technologies are used for this project?
+## 🛠️ Tecnologias
 
-This project is built with:
+| Categoria | Tecnologia |
+|-----------|------------|
+| **Frontend** | React 18, TypeScript, Vite |
+| **Estilização** | Tailwind CSS, shadcn/ui |
+| **Gráficos** | Recharts |
+| **Backend** | Supabase (PostgreSQL + Edge Functions) |
+| **IA** | Google Gemini (via Edge Functions) |
+| **PDFs** | jsPDF, html2canvas |
+| **Formulários** | React Hook Form, Zod |
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 📁 Estrutura do Projeto
 
-## How can I deploy this project?
+```
+mei-manager/
+├── src/
+│   ├── components/     # Componentes reutilizáveis
+│   │   ├── ui/         # Componentes shadcn/ui
+│   │   ├── inventory/  # Componentes de estoque
+│   │   ├── invoice/    # Componentes de notas fiscais
+│   │   └── layout/     # Layout e navegação
+│   ├── hooks/          # Custom hooks
+│   ├── lib/            # Utilitários e configurações
+│   ├── pages/          # Páginas da aplicação
+│   └── types/          # Definições TypeScript
+├── supabase/
+│   └── functions/      # Edge Functions (IA)
+└── public/             # Assets estáticos
+```
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+## 📱 Páginas
 
-## Can I connect a custom domain to my Lovable project?
+| Rota | Descrição |
+|------|-----------|
+| `/` | Dashboard principal |
+| `/notas` | Lista de notas fiscais |
+| `/notas/:id` | Detalhes da nota |
+| `/estoque` | Gestão de inventário |
+| `/financeiro` | Controle financeiro |
+| `/relatorios` | Relatórios e exportação |
+| `/mei` | Dashboard MEI |
+| `/configuracoes` | Configurações do sistema |
 
-Yes, you can!
+## 🤖 Edge Functions (IA)
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+O projeto inclui Edge Functions do Supabase para funcionalidades de IA:
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+- **`analysis-agent`** - Análise inteligente de relatórios
+- **`inventory-agent`** - Análise de estoque com IA
+- **`analyze-product`** - Análise de imagens de produtos
+
+## 🎨 Temas
+
+O sistema suporta tema claro e escuro, com cores personalizáveis via CSS variables.
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+
+## 🤝 Contribuindo
+
+Contribuições são bem-vindas! Sinta-se à vontade para abrir issues e pull requests.
+
+---
+
+Feito com ❤️ para facilitar a vida dos MEIs brasileiros.
