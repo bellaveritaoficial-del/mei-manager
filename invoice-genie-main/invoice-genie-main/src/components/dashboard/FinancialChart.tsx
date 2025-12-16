@@ -12,7 +12,40 @@ import {
 import { useInvoices } from "@/hooks/useInvoices";
 import { useFinancial } from "@/hooks/useFinancial";
 import { useMemo } from "react";
-import { Loader2, BarChart3 } from "lucide-react";
+import { Loader2, BarChart3, TrendingUp, TrendingDown } from "lucide-react";
+
+// Custom tooltip component
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (!active || !payload || !payload.length) return null;
+
+  return (
+    <div className="bg-card/95 backdrop-blur-sm border border-border rounded-xl p-4 shadow-xl min-w-[180px]">
+      <p className="font-semibold text-foreground mb-3 text-center border-b border-border pb-2">
+        {label}
+      </p>
+      <div className="space-y-2">
+        {payload.map((entry: any, index: number) => (
+          <div key={index} className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              {entry.dataKey === 'receitas' ? (
+                <TrendingUp className="w-4 h-4 text-emerald-500" />
+              ) : (
+                <TrendingDown className="w-4 h-4 text-rose-400" />
+              )}
+              <span className="text-sm text-muted-foreground">{entry.name}:</span>
+            </div>
+            <span className={`font-bold text-sm ${entry.dataKey === 'receitas' ? 'text-emerald-500' : 'text-rose-400'}`}>
+              {new Intl.NumberFormat("pt-BR", {
+                style: "currency",
+                currency: "BRL",
+              }).format(entry.value)}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 export function FinancialChart() {
   const { invoices, isLoading: loadingInvoices } = useInvoices();
@@ -78,14 +111,14 @@ export function FinancialChart() {
   const hasData = data.some(d => d.receitas > 0 || d.despesas > 0);
 
   return (
-    <Card className="border-border shadow-sm">
-      <CardHeader>
+    <Card className="border-border shadow-sm overflow-hidden">
+      <CardHeader className="pb-2">
         <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
           <BarChart3 className="w-5 h-5 text-primary" />
           Fluxo Financeiro
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-4">
         {isLoading ? (
           <div className="flex items-center justify-center h-[300px]">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -98,48 +131,56 @@ export function FinancialChart() {
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+            <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="receitasGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#10b981" stopOpacity={1} />
+                  <stop offset="100%" stopColor="#059669" stopOpacity={0.8} />
+                </linearGradient>
+                <linearGradient id="despesasGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.8} />
+                  <stop offset="100%" stopColor="#be123c" stopOpacity={0.6} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} vertical={false} />
               <XAxis
                 dataKey="mes"
-                className="text-muted-foreground"
-                tick={{ fill: "hsl(var(--muted-foreground))" }}
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                dy={10}
               />
               <YAxis
-                className="text-muted-foreground"
-                tick={{ fill: "hsl(var(--muted-foreground))" }}
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
                 tickFormatter={(value) =>
                   new Intl.NumberFormat("pt-BR", {
                     notation: "compact",
                     compactDisplay: "short",
                   }).format(value)
                 }
+                width={50}
               />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "8px",
-                }}
-                formatter={(value: number) =>
-                  new Intl.NumberFormat("pt-BR", {
-                    style: "currency",
-                    currency: "BRL",
-                  }).format(value)
-                }
+              <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))', opacity: 0.3 }} />
+              <Legend
+                iconType="circle"
+                wrapperStyle={{ paddingTop: 20 }}
+                formatter={(value) => <span className="text-sm text-muted-foreground">{value}</span>}
               />
-              <Legend />
               <Bar
                 dataKey="receitas"
-                fill="hsl(var(--primary))"
+                fill="url(#receitasGradient)"
                 name="Receitas"
-                radius={[4, 4, 0, 0]}
+                radius={[6, 6, 0, 0]}
+                maxBarSize={40}
               />
               <Bar
                 dataKey="despesas"
-                fill="hsl(var(--chart-5))"
+                fill="url(#despesasGradient)"
                 name="Despesas"
-                radius={[4, 4, 0, 0]}
+                radius={[6, 6, 0, 0]}
+                maxBarSize={40}
               />
             </BarChart>
           </ResponsiveContainer>
@@ -148,3 +189,4 @@ export function FinancialChart() {
     </Card>
   );
 }
+

@@ -74,6 +74,10 @@ export function InvoiceDANFE({ invoice }: InvoiceDANFEProps) {
   const boleto = useMemo(() => {
     // Verifica se há dados válidos para gerar boleto
     if (!invoice.numero || !invoice.totais?.valorTotalNota || invoice.totais.valorTotalNota <= 0) {
+      console.log('[InvoiceDANFE] Dados insuficientes para boleto:', {
+        numero: invoice.numero,
+        valorTotal: invoice.totais?.valorTotalNota
+      });
       return {
         linhaDigitavel: invoice.chaveAcesso || 'Dados insuficientes para gerar boleto',
         codigoBarras: null,
@@ -84,18 +88,25 @@ export function InvoiceDANFE({ invoice }: InvoiceDANFEProps) {
       ? new Date(invoice.dataSaida)
       : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 dias
 
+    // Gera nossoNumero a partir do número da nota + timestamp para garantir unicidade
+    const numeroDigits = invoice.numero.replace(/\D/g, '') || String(Date.now());
+    const nossoNumero = numeroDigits.padStart(11, '0').substring(0, 11);
+
     const dados: DadosBoleto = {
       codigoBanco: '341', // Itaú como padrão
       moeda: '9',
       vencimento,
       valor: invoice.totais.valorTotalNota,
-      nossoNumero: invoice.numero.replace(/\D/g, '').substring(0, 11) || '00000000000',
+      nossoNumero,
       agencia: '1234',
       conta: '1234567',
       carteira: '109',
     };
 
-    return gerarBoleto(dados);
+    console.log('[InvoiceDANFE] Gerando boleto com dados:', dados);
+    const result = gerarBoleto(dados);
+    console.log('[InvoiceDANFE] Boleto gerado:', result);
+    return result;
   }, [invoice.numero, invoice.totais?.valorTotalNota, invoice.dataSaida, invoice.chaveAcesso]);
 
   return (

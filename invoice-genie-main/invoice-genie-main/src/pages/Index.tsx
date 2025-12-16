@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { RecentInvoices } from '@/components/dashboard/RecentInvoices';
+import { RecentCharges } from '@/components/dashboard/RecentCharges';
 import { FinancialChart } from '@/components/dashboard/FinancialChart';
 import { useInvoices } from '@/hooks/useInvoices';
 import { useCompany } from '@/hooks/useCompany';
@@ -10,11 +11,15 @@ import { useNavigate } from 'react-router-dom';
 import {
   FileText,
   TrendingUp,
+  TrendingDown,
   AlertCircle,
   CheckCircle,
   Wallet,
   Loader2,
   Building2,
+  Plus,
+  Users,
+  Receipt,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,7 +30,7 @@ import { toast } from 'sonner';
 
 const Index = () => {
   const navigate = useNavigate();
-  const { invoices, isLoading: loadingInvoices, financialSummary } = useInvoices();
+  const { invoices, charges, isLoading: loadingInvoices, financialSummary } = useInvoices();
   const { company, isLoading: loadingCompany, createCompany, hasCompany } = useCompany();
   const [isAuthChecking, setIsAuthChecking] = useState(true);
   const [showCompanyDialog, setShowCompanyDialog] = useState(false);
@@ -200,47 +205,71 @@ const Index = () => {
         </DialogContent>
       </Dialog>
 
-      <div className="space-y-8 pt-12 md:pt-0">
-        {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">
-            {company ? `${company.nome_fantasia || company.razao_social}` : 'Visão geral das suas notas fiscais e finanças'}
-          </p>
+      <div className="space-y-6 pt-12 md:pt-0">
+        {/* Header with Quick Actions */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+            <p className="text-muted-foreground mt-1">
+              {company ? `${company.nome_fantasia || company.razao_social}` : 'Visão geral das suas finanças'}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" onClick={() => navigate('/cobrancas')} className="gap-1">
+              <Plus className="w-4 h-4" />
+              Nova Cobrança
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => navigate('/notas')} className="gap-1">
+              <Receipt className="w-4 h-4" />
+              Nova Nota
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => navigate('/clientes/new')} className="gap-1">
+              <Users className="w-4 h-4" />
+              Novo Cliente
+            </Button>
+          </div>
         </div>
 
-        {/* Stats Grid */}
+        {/* Stats Grid - Improved Design */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
             title="Saldo Atual"
             value={formatCurrency(financialSummary.saldo)}
             icon={<Wallet className="w-6 h-6" />}
-            variant="success"
-            trend={{ value: 12.5, isPositive: financialSummary.saldo >= 0 }}
+            variant={financialSummary.saldo >= 0 ? 'success' : 'warning'}
+            trend={{ value: 0, isPositive: financialSummary.saldo >= 0 }}
           />
           <StatCard
-            title="Total Receitas"
+            title="Receitas (Pagas)"
             value={formatCurrency(financialSummary.totalReceitas)}
             icon={<TrendingUp className="w-6 h-6" />}
-            variant="default"
+            variant="success"
           />
           <StatCard
-            title="Notas Pagas"
-            value={financialSummary.notasPagas.toString()}
+            title="A Receber (Pendente)"
+            value={formatCurrency(financialSummary.pendingReceita || 0)}
             icon={<CheckCircle className="w-6 h-6" />}
             variant="default"
           />
           <StatCard
-            title="Notas Pendentes"
-            value={financialSummary.notasPendentes.toString()}
+            title="A Pagar (Pendente)"
+            value={formatCurrency(financialSummary.pendingDespesa || 0)}
             icon={<AlertCircle className="w-6 h-6" />}
             variant="warning"
           />
         </div>
 
-        {/* Charts and Recent */}
+        {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <FinancialChart />
+          <RecentCharges
+            charges={charges as any}
+            onSelect={(charge) => navigate('/financeiro')}
+          />
+        </div>
+
+        {/* Recent Invoices */}
+        <div>
           <RecentInvoices
             invoices={transformedInvoices}
             onSelect={(invoice) => navigate(`/notas/${invoice.id}`)}
@@ -252,3 +281,4 @@ const Index = () => {
 };
 
 export default Index;
+

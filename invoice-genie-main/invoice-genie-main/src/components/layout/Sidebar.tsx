@@ -15,6 +15,7 @@ import {
   Sun,
   Moon,
   ShieldAlert,
+  Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -24,9 +25,10 @@ import { useMEI } from "@/hooks/useMEI";
 
 const navItems = [
   { to: "/", icon: BarChart3, label: "Dashboard" },
+  { to: "/clientes", icon: Users, label: "Clientes" },
   { to: "/notas", icon: FileText, label: "Notas Fiscais" },
+  { to: "/cobrancas", icon: Wallet, label: "Cobranças" },
   { to: "/estoque", icon: Package, label: "Estoque" },
-  { to: "/financeiro", icon: Wallet, label: "Financeiro" },
   { to: "/relatorios", icon: FileText, label: "Relatórios" },
   { to: "/mei", icon: ShieldAlert, label: "Controle MEI" },
   { to: "/configuracoes", icon: Settings, label: "Configurações" },

@@ -47,8 +47,8 @@ export function useInvoices() {
 
     const getInvoice = async (id: string) => {
         console.log('[useInvoices] Buscando nota:', id);
-        const { data, error } = await supabase
-            .from('invoices')
+        const { data, error } = await (supabase
+            .from('invoices') as any)
             .select('*, invoice_items(*)')
             .eq('id', id)
             .single();
@@ -57,7 +57,10 @@ export function useInvoices() {
             console.error('[useInvoices] Erro ao buscar nota:', error);
             throw error;
         }
-        console.log('[useInvoices] Nota encontrada:', data?.numero);
+        if (!data) {
+            throw new Error('Nota não encontrada');
+        }
+        console.log('[useInvoices] Nota encontrada:', data.numero);
         return data as InvoiceWithItems;
     };
 
@@ -67,8 +70,8 @@ export function useInvoices() {
 
             console.log('[useInvoices] Criando nota fiscal...', { numero: invoice.numero, items: items?.length });
 
-            const { data: invoiceData, error: invoiceError } = await supabase
-                .from('invoices')
+            const { data: invoiceData, error: invoiceError } = await (supabase
+                .from('invoices') as any)
                 .insert({ ...invoice, company_id: company.id })
                 .select()
                 .single();
@@ -78,17 +81,17 @@ export function useInvoices() {
                 throw invoiceError;
             }
 
-            console.log('[useInvoices] Nota criada:', invoiceData.id);
+            console.log('[useInvoices] Nota criada:', invoiceData?.id);
 
             if (items && items.length > 0) {
                 const itemsWithInvoiceId = items.map(item => ({
                     ...item,
-                    invoice_id: invoiceData.id,
+                    invoice_id: invoiceData?.id,
                 }));
 
                 console.log('[useInvoices] Inserindo itens:', itemsWithInvoiceId.length);
-                const { error: itemsError } = await supabase
-                    .from('invoice_items')
+                const { error: itemsError } = await (supabase
+                    .from('invoice_items') as any)
                     .insert(itemsWithInvoiceId);
 
                 if (itemsError) {
@@ -109,8 +112,8 @@ export function useInvoices() {
     const updateInvoice = useMutation({
         mutationFn: async ({ id, ...updateData }: InvoiceUpdate & { id: string }) => {
             console.log('[useInvoices] Atualizando nota:', id);
-            const { data, error } = await supabase
-                .from('invoices')
+            const { data, error } = await (supabase
+                .from('invoices') as any)
                 .update({ ...updateData, updated_at: new Date().toISOString() })
                 .eq('id', id)
                 .select()
@@ -149,18 +152,54 @@ export function useInvoices() {
         },
     });
 
-    // Calculate financial summary from real data
+    // Fetch charges for financial summary
+    const { data: charges = [] } = useQuery({
+        queryKey: ['charges-summary'],
+        queryFn: async () => {
+            const { data, error } = await supabase
+                .from('charges')
+                .select('*')
+                .neq('status', 'canceled');
+
+            if (error) {
+                console.error('[useInvoices] Erro ao buscar charges:', error);
+                return [];
+            }
+            return data || [];
+        },
+    });
+
+    // Calculate financial summary from invoices + charges
+    const chargesReceita = charges
+        .filter((c: any) => c.direction === 'receive' && c.status === 'paid')
+        .reduce((sum: number, c: any) => sum + (c.amount || 0), 0);
+
+    const chargesDespesa = charges
+        .filter((c: any) => c.direction === 'pay' && c.status === 'paid')
+        .reduce((sum: number, c: any) => sum + (c.amount || 0), 0);
+
+    const chargesPendentesReceita = charges
+        .filter((c: any) => c.direction === 'receive' && c.status !== 'paid')
+        .reduce((sum: number, c: any) => sum + (c.amount || 0), 0);
+
+    const chargesPendentesDespesa = charges
+        .filter((c: any) => c.direction === 'pay' && c.status !== 'paid')
+        .reduce((sum: number, c: any) => sum + (c.amount || 0), 0);
+
     const financialSummary = {
         totalReceitas: invoices
             .filter(inv => inv.tipo_operacao === 1)
-            .reduce((sum, inv) => sum + (inv.valor_total_nota || 0), 0),
+            .reduce((sum, inv) => sum + (inv.valor_total_nota || 0), 0) + chargesReceita,
         totalDespesas: invoices
             .filter(inv => inv.tipo_operacao === 0)
-            .reduce((sum, inv) => sum + (inv.valor_total_nota || 0), 0),
+            .reduce((sum, inv) => sum + (inv.valor_total_nota || 0), 0) + chargesDespesa,
         saldo: 0,
         notasPendentes: invoices.filter(inv => inv.status === 'pendente').length,
         notasPagas: invoices.filter(inv => inv.status === 'pago').length,
         notasVencidas: invoices.filter(inv => inv.status === 'vencido').length,
+        // New: pending charges totals
+        pendingReceita: chargesPendentesReceita,
+        pendingDespesa: chargesPendentesDespesa,
     };
     financialSummary.saldo = financialSummary.totalReceitas - financialSummary.totalDespesas;
 
@@ -168,6 +207,7 @@ export function useInvoices() {
 
     return {
         invoices,
+        charges,
         isLoading,
         error,
         getInvoice,
